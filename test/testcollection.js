@@ -58,6 +58,54 @@ describe('Register, Login and Call Test Collection with Basic Auth and JWT Auth'
        })
     });
 
+    describe('/movies GET test', () => {
+        it('should respond with status code 200 and the req information', (done) => {
+            chai.request(server)
+                .get('/movies')
+                .then((res) =>{
+                    res.should.have.status(200);
+                    console.log(res.body);
+                    done();
+                })
+        })
+    });
+
+    describe('/movies POST test', () => {
+        it('should respond with status code 200 and the req information', (done) => {
+            chai.request(server)
+                .post('/movies')
+                .then((res) =>{
+                    res.should.have.status(200);
+                    console.log(res.body);
+                    done();
+                })
+        })
+    });
+
+    describe('/movies PUT test', () => {
+        it('should respond with status code 200 and the req information', (done) => {
+            chai.request(server)
+                .put('/movies')
+                .then((res) =>{
+                    res.should.have.status(200);
+                    console.log(res.body);
+                    done();
+                })
+        })
+    });
+
+    describe('/movies DELETE test', () => {
+        it('should respond with status code 200 and the req information', (done) => {
+            chai.request(server)
+                .delete('/movies')
+                .then((res) =>{
+                    res.should.have.status(200);
+                    console.log(res.body);
+                    done();
+                })
+        })
+    });
+
     describe('/testcollection fail auth', () => {
        it('delete requires basic auth failed login', (done) => {
            chai.request(server)
