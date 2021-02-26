@@ -82,10 +82,10 @@ router.route('/movies')
     .post(function(req,res){
         res.status(200).send({status: 200, message: "movie saved", headers: req.headers, query: req.query, env: process.env.UNIQUE_KEY});
     })
-    .put(function(req,res){
+    .put(authJwtController.isAuthenticated, function (req,res){
         res.status(200).send({status: 200, message: "movie updated", headers: req.headers, query: req.query, env:process.env.UNIQUE_KEY});
     })
-    .delete(function(req, res) {
+    .delete(authController.isAuthenticated, function(req, res) {
         res.status(200).send({status: 200, message: "movie deleted", headers: req.headers, query: req.query, env:process.env.UNIQUE_KEY});
     });
 

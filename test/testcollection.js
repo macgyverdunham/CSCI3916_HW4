@@ -62,9 +62,9 @@ describe('Register, Login and Call Test Collection with Basic Auth and JWT Auth'
         it('should respond with status code 200 and the req information', (done) => {
             chai.request(server)
                 .get('/movies')
-                .then((res) =>{
+                .end((err, res) =>{
                     res.should.have.status(200);
-                    console.log(res.body);
+                    res.body.should.have.property('env');
                     done();
                 })
         })
@@ -74,33 +74,46 @@ describe('Register, Login and Call Test Collection with Basic Auth and JWT Auth'
         it('should respond with status code 200 and the req information', (done) => {
             chai.request(server)
                 .post('/movies')
-                .then((res) =>{
+                .end((err, res) =>{
                     res.should.have.status(200);
-                    console.log(res.body);
                     done();
                 })
         })
     });
 
     describe('/movies PUT test', () => {
-        it('should respond with status code 200 and the req information', (done) => {
+        it('should respond with message of movie updated and require jwt Auth', (done) => {
             chai.request(server)
-                .put('/movies')
-                .then((res) =>{
+                .post('/signin')
+                .send(login_details)
+                .end((err, res) => {
                     res.should.have.status(200);
-                    console.log(res.body);
-                    done();
+                    res.body.should.have.property('token')
+
+                    let token = res.body.token;
+
+                    chai.request(server)
+                        .put('/movies')
+                        .set('Authorization', token)
+                        .send({echo: ''})
+                        .end((err, res) => {
+                            res.should.have.status(200);
+                            res.body.should.have.property('message').equal('movie updated');
+                            done();
+                        })
                 })
         })
     });
 
     describe('/movies DELETE test', () => {
-        it('should respond with status code 200 and the req information', (done) => {
+        it('delete requires basic auth and send back the msg movie deleted', (done) => {
             chai.request(server)
                 .delete('/movies')
-                .then((res) =>{
+                .auth('cu_user', 'cu_rulez')
+                .send({echo: ''})
+                .end((err, res) =>{
                     res.should.have.status(200);
-                    console.log(res.body);
+                    res.body.should.have.property('message').equal('movie deleted');
                     done();
                 })
         })
