@@ -72,7 +72,7 @@ describe('Register, Login and Call Test Collection with Basic Auth and JWT Auth'
     });
 
     describe('/movies POST test', () => {
-        it('should respond with status code 200 and the req information', (done) => {
+        it('should respond with status code 200 and the message movie saved', (done) => {
             chai.request(server)
                 .post('/movies')
                 .end((err, res) =>{
