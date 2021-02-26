@@ -65,6 +65,7 @@ describe('Register, Login and Call Test Collection with Basic Auth and JWT Auth'
                 .end((err, res) =>{
                     res.should.have.status(200);
                     res.body.should.have.property('env');
+                    res.body.should.have.property('message').equal('GET movies');
                     done();
                 })
         })
@@ -76,6 +77,7 @@ describe('Register, Login and Call Test Collection with Basic Auth and JWT Auth'
                 .post('/movies')
                 .end((err, res) =>{
                     res.should.have.status(200);
+                    res.body.should.have.property('message').equal('movie saved');
                     done();
                 })
         })
