@@ -89,6 +89,7 @@ router.post('/signin', function (req, res) {
 
 router.route('/movies')
     .get(authJwtController.isAuthenticated, function(req, res){
+        //DB query based off the title only.
         Movies.findOne( {title: req.body.message}).select('title releaseYear genre actors').exec(function (err, movie) {
             if (err) {
                 res.send(err)
@@ -131,6 +132,7 @@ router.route('/movies')
 
     })
     .put(authJwtController.isAuthenticated, function (req,res){
+        //DB query based off title only.
         Movies.findOneAndUpdate({title: req.body.title}, {releaseYear: req.body.releaseYear}).exec(function (err, movie) {
             if (err)
                 res.send(err)
@@ -139,6 +141,7 @@ router.route('/movies')
         });
     })
     .delete(authJwtController.isAuthenticated, function(req, res) {
+        //DB query based off title only.
         Movies.findOneAndDelete( {title: req.body.title}).exec(function (err, movie) {
             if (err)
                 res.send(err)
