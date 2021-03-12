@@ -12,6 +12,7 @@ var authJwtController = require('./auth_jwt');
 var jwt = require('jsonwebtoken');
 var cors = require('cors');
 var User = require('./Users');
+var Movies = require('./Movies');
 
 var app = express();
 app.use(cors());
@@ -53,7 +54,7 @@ router.post('/signup', function (req, res) {
         user.save(function(err){
             if (err) {
                 if (err.code == 11000)
-                    return res.json({success: false, message: 'A use with that username already exists.'});
+                    return res.json({success: false, message: 'A user with that username already exists.'});
                 else
                     return res.json(err);
             }
@@ -87,17 +88,63 @@ router.post('/signin', function (req, res) {
 });
 
 router.route('/movies')
-    .get(function(req, res){
-        res.status(200).send({status: 200, message: "GET movies", headers: req.headers, query: req.query, env: process.env.UNIQUE_KEY});
+    .get(authJwtController.isAuthenticated, function(req, res){
+        Movies.findOne( {title: req.body.message}).select('title releaseYear genre actors').exec(function (err, movie) {
+            if (err) {
+                res.send(err)
+            }
+            let resMovie = {
+                title: movie.title,
+                releaseYear: movie.releaseYear,
+                genre: movie.genre,
+                actors: movie.actors
+            }
+            res.json(resMovie);
+        })
     })
-    .post(function(req,res){
-        res.status(200).send({status: 200, message: "movie saved", headers: req.headers, query: req.query, env: process.env.UNIQUE_KEY});
+    .post(authJwtController.isAuthenticated, function (req,res){
+        switch (req) {
+            case !req.body.title:
+                return res.json({success: false, message: 'Please include the title of the movie.'});
+            case !req.body.releaseYear:
+                return res.json({success: false, message: 'Please include the release year of the movie.'});
+            case !req.body.genre:
+                return res.json({success: false, message: 'Please include the genre of the movie.'});
+            case req.body.actors.length < 3:
+                return res.json({success: false, message: 'Please include at least 3 actors of the movie.'});
+            default:
+                var movieNew = new Movies();
+                movieNew.title = req.body.title;
+                movieNew.releaseYear = req.body.releaseYear;
+                movieNew.genre = req.body.genre;
+                movieNew.actors = req.body.actors;
+                movieNew.save(function (err){
+                    if (err) {
+                        if (err.code == 11000)
+                            return res.json({success: false, message: 'A user with that username already exists.'});
+                        else
+                            return res.json(err);
+                    }
+                    res.send({status: 200, message: "movie saved", headers: req.headers, query: req.query, env: process.env.UNIQUE_KEY});
+                });
+        }
+
     })
     .put(authJwtController.isAuthenticated, function (req,res){
-        res.status(200).send({status: 200, message: "movie updated", headers: req.headers, query: req.query, env:process.env.UNIQUE_KEY});
+        Movies.findOneAndUpdate({title: req.body.title}, {releaseYear: req.body.releaseYear}).exec(function (err, movie) {
+            if (err)
+                res.send(err)
+            else
+                res.json( {status: 200, message: "movie updated with the correct release year", new_releaseYear: req.body.releaseYear})
+        });
     })
-    .delete(authController.isAuthenticated, function(req, res) {
-        res.status(200).send({status: 200, message: "movie deleted", headers: req.headers, query: req.query, env:process.env.UNIQUE_KEY});
+    .delete(authJwtController.isAuthenticated, function(req, res) {
+        Movies.findOneAndDelete( {title: req.body.title}).exec(function (err, movie) {
+            if (err)
+                res.send(err)
+            else
+                res.json( {status: 200, message: "movie deleted", deleted_movie: req.body.title})
+        });
     });
 
 
