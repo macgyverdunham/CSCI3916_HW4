@@ -10,7 +10,7 @@ chai.should();
 chai.use(chaiHttp);
 
 let login_details = {
-    name: 'test',
+    name: 'test1',
     username: 'email@email.com',
     password: '123@abc'
 }
@@ -52,7 +52,7 @@ describe('Register, Login and Call Test Collection with Basic Auth and JWT Auth'
 
     after((done) => { //after this test suite empty the db
         //db.userList = [];
-        User.deleteOne({name: 'test'}, function(err, user) {
+        User.deleteOne({name: 'test1'}, function(err, user) {
             if (err) throw err;
         });
         //Movies.deleteOne({title: 'The Matrix'}, function(err, movies) {
@@ -124,7 +124,6 @@ describe('Register, Login and Call Test Collection with Basic Auth and JWT Auth'
                     res.should.have.status(200);
                     res.body.should.have.property('message').equal('movie updated with the correct release year');
                     res.body.should.have.property('new_releaseYear').equal(2001);
-                    console.log(res.body);
                     done();
                 })
         })

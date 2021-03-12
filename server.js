@@ -126,6 +126,7 @@ router.route('/movies')
                         else
                             return res.json(err);
                     }
+                    console.log(movieNew);
                     res.send({status: 200, message: "movie saved", headers: req.headers, query: req.query, env: process.env.UNIQUE_KEY});
                 });
         }
