@@ -22,6 +22,8 @@ function(callback) <-- call for movie
 
 function(arg1,arg2,callback) <--- movie as arg1
 
+function(AGGREGATE IT) <--- join the two objects
+
 Option 2:
 
 $Lookup using mongoDB as a single lookup.
