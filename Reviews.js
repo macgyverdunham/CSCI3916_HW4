@@ -2,6 +2,9 @@
 
 
 /*
+OPTION 1:
+
+
 {
     reviewerid: 'userid from the JWT token',
     comment: 'quote from user',
@@ -49,14 +52,14 @@ db.inventory.insert([
 The following aggregation operation on the orders collection joins the documents from orders with the documents from the inventory
 collection using the fields item from the orders collection and the sku field from the inventory collection:
 
-db.orders.aggregate([
+db.orders.aggregate([ <--- db.movies.aggregate
    {
      $lookup:
        {
-         from: "inventory",
-         localField: "item",
-         foreignField: "sku",
-         as: "inventory_docs"
+         from: "inventory", <--- reviews table
+         localField: "item", <--- localfield is probs movieID from movie table
+         foreignField: "sku", <--- movie id in the reviews table
+         as: "inventory_docs" <--- movies_reviews
        }
   }
 ])
