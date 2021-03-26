@@ -1,5 +1,5 @@
 /*
-CSCI3916 HW3
+CSCI3916 HW4
 File: Server.js
 Description: Web API scaffolding for Movie API
  */
@@ -13,7 +13,8 @@ var jwt = require('jsonwebtoken');
 var cors = require('cors');
 var User = require('./Users');
 var Movies = require('./Movies');
-
+var Reviews = require('./Reviews');
+var userToken1; //save user JWT token to be used in the review collection if the user chooses to leave a review
 var app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -78,6 +79,7 @@ router.post('/signin', function (req, res) {
             if (isMatch) {
                 var userToken = { id: user.id, username: user.username };
                 var token = jwt.sign(userToken, process.env.SECRET_KEY);
+                userToken1 = token; //For use in the reviews collection if the user adds a review
                 res.json ({success: true, token: 'JWT ' + token});
             }
             else {
@@ -150,6 +152,55 @@ router.route('/movies')
         });
     });
 
+router.route('/reviews')
+    .get(function (req, res) {
+        if (req.body.reviews === true){
+            Movies.aggregate([
+                {
+                    $lookup:
+                        {
+                            from: 'reviews',
+                            localField: 'title',
+                            foreignField: 'movieid',
+                            as: 'movie_reviews'
+                        }
+                }
+            ]).then(entries =>
+                entries.filter(item => item.title === req.body.title).forEach(item => res.json(item)));
+            return;
+        }
+        Movies.findOne( {title: req.body.title}).select('title releaseYear genre actors').exec(function (err, movie) {
+            if (err) {
+                res.send(err)
+            }
+            let resMovie = {
+                title: movie.title,
+                releaseYear: movie.releaseYear,
+                genre: movie.genre,
+                actors: movie.actors
+            }
+            res.json(resMovie);
+        });
+    })
+    .post(authJwtController.isAuthenticated, function (req, res) {
+        Movies.findOne({title: req.body.movieid}).select('title releaseYear genre actors').exec(function (err, movie) {
+            if (err) {
+                res.send(err)
+            }
+        })
+        //movie title is the movieid
+        var reviewNew = new Reviews();
+        reviewNew.reviewerid = userToken1;
+        reviewNew.comment = req.body.comment;
+        reviewNew.rating = req.body.rating;
+        reviewNew.movieid = req.body.movieid;
+        reviewNew.save(function (err) {
+            if (err) {
+                res.send(err)
+            }
+            res.json({status: 200, message: "review has been added."});
+        })
+    });
 
 app.use('/', router);
 app.listen(process.env.PORT || 8080);

@@ -5,6 +5,7 @@ let chaiHttp = require('chai-http');
 let server = require('../server');
 let User = require('../Users');
 let Movies = require('../Movies');
+let Reviews = require('../Reviews');
 chai.should();
 
 chai.use(chaiHttp);
@@ -19,27 +20,10 @@ let test_user = {
     jwt_token: 'empty until filled by signin function.'
 }
 
-let actor1 = {
-    ActorName: 'Keanu Reeves',
-    CharacterName: 'Neo'
-}
-
-let actor2 = {
-    ActorName: 'Laurence Fishburne',
-    CharacterName: 'Morpheus'
-}
-
-let actor3 = {
-    ActorName: 'Carrie-Anne Moss',
-    CharacterName: 'Trinity'
-}
-
-
-let movies_post_test = {
-    title: 'The Matrix',
-    releaseYear: '2008',
-    genre: 'Action',
-    actors: [actor1, actor2, actor3]
+let reviews_post_test = {
+    movieid: 'The Bourne Legacy',
+    comment: 'Boring Action Movie...',
+    rating: 1,
 }
 
 
@@ -55,12 +39,9 @@ describe('Register, Login and Call Test Collection with Basic Auth and JWT Auth'
         User.deleteOne({name: 'test1'}, function(err, user) {
             if (err) throw err;
         });
-        //Movies.deleteOne({title: 'The Matrix'}, function(err, movies) {
-            //if (err) throw err;
-        //});
-        Movies.findOneAndUpdate( {title: 'Requiem for a Dream'}, {releaseYear: 2000}, function(err, movie) {
-            if (err) throw err;
-        })
+        Reviews.deleteOne( {movieid: 'The Bourne Legacy', comment: 'Boring Action Movie...'}, function (err) {
+            if (err)  throw err;
+        });
         done();
     })
 
@@ -71,7 +52,6 @@ describe('Register, Login and Call Test Collection with Basic Auth and JWT Auth'
                 .post('/signup')
                 .send(login_details)
                 .end((err, res) =>{
-                    console.log(JSON.stringify(res.body));
                     res.should.have.status(200);
                     res.body.success.should.be.eql(true);
                     //follow-up to get the JWT token
@@ -87,57 +67,40 @@ describe('Register, Login and Call Test Collection with Basic Auth and JWT Auth'
         })
     });
 
-    describe('/movies GET test', () => {
-        it('should respond with status code 200 and the req information', (done) => {
+    describe('/reviews GET test', () => {
+        it('should respond with the movie information requested without reviews', (done) => {
             chai.request(server)
-                .get('/movies')
-                .set('Authorization', test_user.jwt_token)
-                .send({message: 'Requiem for a Dream'})
-                .end((err, res) =>{
+                .get('/reviews')
+                .send( {reviews: false, title: 'Requiem for a Dream'})
+                .end((err, res) => {
                     res.should.have.status(200);
                     done();
                 })
         })
     });
 
-    describe('/movies POST test', () => {
-        it('should respond with status code 200 and the message movie saved', (done) => {
+    describe('/reviews POST test', () => {
+        it('should respond with status code 200 and the message review saved', (done) => {
             chai.request(server)
-                .post('/movies')
+                .post('/reviews')
                 .set('Authorization', test_user.jwt_token)
-                .send(movies_post_test)
+                .send(reviews_post_test)
                 .end((err, res) =>{
                     res.should.have.status(200);
-                    res.body.should.have.property('message').equal('movie saved');
+                    res.body.should.have.property('message').equal('review has been added.');
                     done();
                 })
         })
     });
 
-    describe('/movies PUT test', () => {
-        it('update the movie releaseyear based on a db query of a title, requires JWT auth', (done) => {
+    describe('/reviews GET test', () => {
+        it('should respond with the movie information requested AND reviews', (done) => {
             chai.request(server)
-                .put('/movies')
-                .set('Authorization', test_user.jwt_token)
-                .send({title: 'Requiem for a Dream', releaseYear: 2001})
-                .end((err, res) =>{
+                .get('/reviews')
+                .send( {reviews: true, title: 'Requiem for a Dream'})
+                .end((err, res) => {
+                    res.body.should.have.property('movie_reviews');
                     res.should.have.status(200);
-                    res.body.should.have.property('message').equal('movie updated with the correct release year');
-                    res.body.should.have.property('new_releaseYear').equal(2001);
-                    done();
-                })
-        })
-    });
-
-    describe('/movies DELETE test', () => {
-        it('delete requires JWT auth and send back the msg movie deleted', (done) => {
-            chai.request(server)
-                .delete('/movies')
-                .set('Authorization', test_user.jwt_token)
-                .send({title: 'The Matrix'})
-                .end((err, res) =>{
-                    res.should.have.status(200);
-                    res.body.should.have.property('message').equal('movie deleted');
                     done();
                 })
         })
