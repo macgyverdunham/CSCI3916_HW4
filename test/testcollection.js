@@ -26,6 +26,12 @@ let reviews_post_test = {
     rating: 1,
 }
 
+let reviews_post_test_bad = {
+    movieid: 'The Bourne Legacy123',
+    comment: 'Boring Action Movie...',
+    rating: 1,
+}
+
 
 describe('Register, Login and Call Test Collection with Basic Auth and JWT Auth', (done) => {
     beforeEach( (done) => { //before each test initialize the db to empty
@@ -71,9 +77,24 @@ describe('Register, Login and Call Test Collection with Basic Auth and JWT Auth'
         it('should respond with the movie information requested without reviews', (done) => {
             chai.request(server)
                 .get('/reviews')
-                .send( {reviews: false, title: 'Requiem for a Dream'})
+                .send( {reviews: false, title: 'Requiem for a Dream123'})
                 .end((err, res) => {
                     res.should.have.status(200);
+                    res.body.should.have.property('success').eqls(false);
+                    done();
+                })
+        })
+    });
+
+    describe('/reviews POST test Bad input', () => {
+        it('should respond with status code 200 and the message movie does not exist', (done) => {
+            chai.request(server)
+                .post('/reviews')
+                .set('Authorization', test_user.jwt_token)
+                .send(reviews_post_test_bad)
+                .end((err, res) =>{
+                    res.should.have.status(200);
+                    res.body.should.have.property('success').equal(false);
                     done();
                 })
         })

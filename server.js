@@ -171,7 +171,11 @@ router.route('/reviews')
         }
         Movies.findOne( {title: req.body.title}).select('title releaseYear genre actors').exec(function (err, movie) {
             if (err) {
-                res.send(err)
+                res.send(err);
+            }
+            if (movie === null) {
+                res.send({success: false, message: 'Movie does not exist in the Database.'});
+                return;
             }
             let resMovie = {
                 title: movie.title,
@@ -187,7 +191,11 @@ router.route('/reviews')
             if (err) {
                 res.send(err)
             }
-        })
+            if (movie === null) {
+                res.send({success: false, message: 'Movie does not exist in the Database.'});
+                return;
+            }
+
         //movie title is the movieid
         var reviewNew = new Reviews();
         reviewNew.reviewerid = userToken1;
@@ -199,7 +207,8 @@ router.route('/reviews')
                 res.send(err)
             }
             res.json({status: 200, message: "review has been added."});
-        })
+            })
+        });
     });
 
 app.use('/', router);
