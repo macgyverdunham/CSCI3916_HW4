@@ -77,10 +77,9 @@ describe('Register, Login and Call Test Collection with Basic Auth and JWT Auth'
         it('should respond with the movie information requested without reviews', (done) => {
             chai.request(server)
                 .get('/reviews')
-                .send( {reviews: false, title: 'Requiem for a Dream123'})
+                .send( {title: 'Requiem for a Dream'})
                 .end((err, res) => {
                     res.should.have.status(200);
-                    res.body.should.have.property('success').eqls(false);
                     done();
                 })
         })
@@ -117,7 +116,7 @@ describe('Register, Login and Call Test Collection with Basic Auth and JWT Auth'
     describe('/reviews GET test', () => {
         it('should respond with the movie information requested AND reviews', (done) => {
             chai.request(server)
-                .get('/reviews')
+                .get('/reviews?reviews=true')
                 .send( {reviews: true, title: 'Requiem for a Dream'})
                 .end((err, res) => {
                     res.body.should.have.property('movie_reviews');

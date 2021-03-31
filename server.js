@@ -154,7 +154,7 @@ router.route('/movies')
 
 router.route('/reviews')
     .get(function (req, res) {
-        if (req.body.reviews === true){
+        if (req.query.reviews === "true"){
             Movies.aggregate([
                 {
                     $lookup:
