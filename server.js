@@ -153,8 +153,8 @@ router.route('/movies')
     });
 
 router.route('/reviews')
-    .get(function (req, res) {
-        if (req.body.reviews === true){
+    .get( function (req, res) {
+        if(req.query.reviews === "true") {
             Movies.aggregate([
                 {
                     $lookup:
@@ -166,10 +166,52 @@ router.route('/reviews')
                         }
                 }
             ]).then(entries =>
-                entries.filter(item => item.title === req.body.title).forEach(item => res.json(item)));
+                res.json(entries));
+        }
+    })
+    .post(authJwtController.isAuthenticated, function (req, res) {
+        Movies.findOne({title: req.body.movieid}).select('title releaseYear genre actors').exec(function (err, movie) {
+            if (err) {
+                res.send(err)
+            }
+            if (movie === null) {
+                res.send({success: false, message: 'Movie does not exist in the Database.'});
+                return;
+            }
+
+            //movie title is the movieid
+            var reviewNew = new Reviews();
+            reviewNew.reviewerid = userToken1;
+            reviewNew.comment = req.body.comment;
+            reviewNew.rating = req.body.rating;
+            reviewNew.movieid = req.body.movieid;
+            reviewNew.save(function (err) {
+                if (err) {
+                    res.send(err)
+                }
+                res.json({status: 200, message: "review has been added."});
+            })
+        });
+    });
+
+router.route('/reviews/:title')
+    .get(function (req, res) {
+        if (req.query.reviews === "true"){
+            Movies.aggregate([
+                {
+                    $lookup:
+                        {
+                            from: 'reviews',
+                            localField: 'title',
+                            foreignField: 'movieid',
+                            as: 'movie_reviews'
+                        }
+                }
+            ]).then(entries =>
+                entries.filter(item => item.title === req.params.title).forEach(item => res.json(item)));
             return;
         }
-        Movies.findOne( {title: req.body.title}).select('title releaseYear genre actors').exec(function (err, movie) {
+        Movies.findOne( {title: req.params.title}).select('title releaseYear genre actors').exec(function (err, movie) {
             if (err) {
                 res.send(err);
             }
@@ -186,30 +228,7 @@ router.route('/reviews')
             res.json(resMovie);
         });
     })
-    .post(authJwtController.isAuthenticated, function (req, res) {
-        Movies.findOne({title: req.body.movieid}).select('title releaseYear genre actors').exec(function (err, movie) {
-            if (err) {
-                res.send(err)
-            }
-            if (movie === null) {
-                res.send({success: false, message: 'Movie does not exist in the Database.'});
-                return;
-            }
 
-        //movie title is the movieid
-        var reviewNew = new Reviews();
-        reviewNew.reviewerid = userToken1;
-        reviewNew.comment = req.body.comment;
-        reviewNew.rating = req.body.rating;
-        reviewNew.movieid = req.body.movieid;
-        reviewNew.save(function (err) {
-            if (err) {
-                res.send(err)
-            }
-            res.json({status: 200, message: "review has been added."});
-            })
-        });
-    });
 
 app.use('/', router);
 app.listen(process.env.PORT || 8080);
